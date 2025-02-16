@@ -4,11 +4,12 @@ import sys
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.deepclaude.deepclaude import DeepClaude
 from app.utils.auth import verify_api_key
 from app.utils.logger import logger
+from app.utils.model_selector import ModelSelector
 
 # 加载环境变量
 load_dotenv()
@@ -19,7 +20,7 @@ app = FastAPI(title="DeepClaude API")
 ALLOW_ORIGINS = os.getenv("ALLOW_ORIGINS", "*")
 
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-ENV_CLAUDE_MODEL = os.getenv("CLAUDE_MODEL")
+CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-3-5-sonnet-20241022")
 CLAUDE_PROVIDER = os.getenv(
     "CLAUDE_PROVIDER", "anthropic"
 )  # Claude模型提供商, 默认为anthropic
@@ -59,6 +60,8 @@ deep_claude = DeepClaude(
     CLAUDE_PROVIDER,
     IS_ORIGIN_REASONING,
 )
+
+model_selector = ModelSelector()
 
 # 验证日志级别
 logger.debug("当前日志级别为 DEBUG")
@@ -127,8 +130,14 @@ async def chat_completions(request: Request):
         messages = body.get("messages")
 
         # 获取模型id, 判断是否使用请求体中的模型id, 否则使用环境变量中的模型id
-        body_claude_model = body.get("model", "claude-3-5-sonnet-20241022")
-        claude_model = ENV_CLAUDE_MODEL if ENV_CLAUDE_MODEL != "" else body_claude_model
+        body_model_id = body.get("model", "deepclaude")
+
+        model_id_pair: tuple[str, str] = (
+            DEEPSEEK_MODEL,
+            CLAUDE_MODEL,
+        )
+        if body_model_id != "deepclaude":
+            model_id_pair = model_selector.select_model(body_model_id)
 
         # 2. 获取并验证参数
         model_arg = get_and_validate_params(body)
@@ -140,10 +149,8 @@ async def chat_completions(request: Request):
                 deep_claude.chat_completions_with_stream(
                     messages=messages,
                     model_arg=model_arg[:4],  # 不传递 stream 参数
-                    deepseek_model=DEEPSEEK_MODEL,
-                    claude_model=claude_model
-                    if claude_model
-                    else "claude-3-5-sonnet-20241022",
+                    deepseek_model=model_id_pair[0],
+                    claude_model=model_id_pair[1],
                 ),
                 media_type="text/event-stream",
             )
@@ -152,16 +159,24 @@ async def chat_completions(request: Request):
             response = await deep_claude.chat_completions_without_stream(
                 messages=messages,
                 model_arg=model_arg[:4],  # 不传递 stream 参数
-                deepseek_model=DEEPSEEK_MODEL,
-                claude_model=claude_model
-                if claude_model
-                else "claude-3-5-sonnet-20241022",
+                deepseek_model=model_id_pair[0],
+                claude_model=model_id_pair[1],
             )
             return response
 
+    except ValueError as e:
+        logger.error(f"参数验证失败: {e}")
+        return JSONResponse(
+            status_code=400,
+            content={"error": {"status": 400, "message": str(e)}},
+        )
+
     except Exception as e:
         logger.error(f"处理请求时发生错误: {e}")
-        return {"error": str(e)}
+        return JSONResponse(
+            status_code=400,
+            content={"error": {"status": 400, "message": str(e)}},
+        )
 
 
 def get_and_validate_params(body):

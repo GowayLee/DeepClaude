@@ -16,3 +16,6 @@ wheels/
 
 # Windsurf
 .windsurfrules
+
+# Editor related
+.zed/*
