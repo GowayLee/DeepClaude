@@ -17,7 +17,7 @@ class BaseClient(ABC):
     # connect: 连接超时时间
     # sock_read: 读取超时时间
     # TODO: 默认时间的设置涉及到模型推理速度，需要根据实际情况进行调整
-    DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=600, connect=10, sock_read=500)
+    DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=600, connect=30, sock_read=500)
 
     def __init__(
         self,
@@ -66,7 +66,7 @@ class BaseClient(ABC):
                     # 检查响应状态
                     if not response.ok:
                         error_text = await response.text()
-                        error_msg = f"API 请求失败: 状态码 {response.status}, 错误信息: {error_text}"
+                        error_msg = f"Bad Request. Status {response.status}, Error Message: {error_text}"
                         logger.error(error_msg)
                         raise ClientError(error_msg)
 
@@ -76,18 +76,15 @@ class BaseClient(ABC):
                             yield chunk
 
         except ServerTimeoutError as e:
-            error_msg = f"请求超时: {str(e)}"
-            logger.error(error_msg)
+            logger.error(f"Request Timeout: {str(e)}")
             raise
 
         except ClientError as e:
-            error_msg = f"客户端错误: {str(e)}"
-            logger.error(error_msg)
+            logger.error(f"Client Error: {str(e)}")
             raise
 
         except Exception as e:
-            error_msg = f"请求处理异常: {str(e)}"
-            logger.error(error_msg)
+            logger.error(f"Request Error: {str(e)}")
             raise
 
     @abstractmethod

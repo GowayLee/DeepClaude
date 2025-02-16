@@ -20,32 +20,24 @@ class ModelSelector:
     def _parse_model_id(self, model_id: str) -> tuple[str, str]:
         """Parse model ID update and return it."""
         logger.debug(f"Parsing model ID: {model_id}")
+
         # `model_id` pattern: <deepseek_alias>+<claude_alias>
-        # change `-` to `_`
-        origin_model_id = model_id
         model_id = model_id.replace("-", "_")
-        # split the model_id into two parts and convert to uppercase
-        # add prefix of MODEL_
-        deepseek_alias: str = "MODEL_" + model_id.split("+")[0].upper()
-        claude_alias: str = "MODEL_" + model_id.split("+")[1].upper()
+        deepseek_part, claude_part = model_id.split("+")
+
+        # Generate aliases
+        deepseek_alias = f"MODEL_{deepseek_part.upper()}"
+        claude_alias = f"MODEL_{claude_part.upper()}"
 
         logger.debug(f"DeepSeek alias: {deepseek_alias}")
         logger.debug(f"Claude alias: {claude_alias}")
 
-        # try to find alias in ENV
-        deepseek_name: str | None = os.getenv(deepseek_alias)
-        claude_name: str | None = os.getenv(claude_alias)
+        # Fetch from ENV or use defaults
+        deepseek_name = os.getenv(deepseek_alias, deepseek_part)
+        claude_name = os.getenv(claude_alias, claude_part)
 
-        # check availability of models
-        if deepseek_name is None or claude_name is None:
-            raise ValueError(f"Model '{model_id}' not found.")
-
-        # check if model is already in cache
-        if origin_model_id in self.cache:
-            return self.cache[origin_model_id]
-
-        # add model to cache
-        self.cache[origin_model_id] = (deepseek_name, claude_name)
+        # Cache the result
+        self.cache[model_id] = (deepseek_name, claude_name)
 
         return (deepseek_name, claude_name)
 
@@ -54,12 +46,8 @@ class ModelSelector:
         if model_id in self.cache:
             logger.info(f"Model '{model_id}' found in cache.")
             return self.cache[model_id]
-        else:
-            try:
-                logger.info(f"Model '{model_id}' not found in cache.")
-                model_pair = self._parse_model_id(model_id)
-            except ValueError as e:
-                raise ValueError(f"Model '{model_id}' not found.") from e
 
-            logger.info(f"Model '{model_id}' parsed successfully.")
-            return model_pair
+        logger.info(f"Model '{model_id}' not found in cache.")
+        model_pair = self._parse_model_id(model_id)
+        logger.info(f"Model '{model_id}' parsed successfully.")
+        return model_pair
