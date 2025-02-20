@@ -130,24 +130,33 @@ class DeepClaude:
                 if not reasoning:
                     logger.warning("未能获取到有效的推理内容，将使用默认提示继续")
                     reasoning = "获取推理内容失败"
+
                 # 构造 Claude 的输入消息
                 claude_messages = messages.copy()
                 combined_content = f"""
                 Here's my another model's reasoning process:\n{reasoning}\n\n
                 Based on this reasoning, provide your response directly to me:"""
 
-                # 改造最后一个消息对象，判断消息对象是 role = user，然后在这个对象的 content 后追加新的 String
-                last_message = claude_messages[-1]
-                if last_message.get("role", "") == "user":
-                    original_content = last_message["content"]
-                    fixed_content = f"Here's my original input:\n{original_content}\n\n{combined_content}"
-                    last_message["content"] = fixed_content
-                # 处理可能 messages 内存在 role = system 的情况，如果有，则去掉当前这一条的消息对象
+                # 处理可能 messages 内存在 role = system 的情况
                 claude_messages = [
                     message
                     for message in claude_messages
                     if message.get("role", "") != "system"
                 ]
+
+                # 检查过滤后的消息列表是否为空
+                if not claude_messages:
+                    raise ValueError("消息列表为空，无法处理 Claude 请求")
+
+                # 获取最后一个消息并检查其角色
+                last_message = claude_messages[-1]
+                if last_message.get("role", "") != "user":
+                    raise ValueError("最后一个消息的角色不是用户，无法处理请求")
+
+                # 修改最后一个消息的内容
+                original_content = last_message["content"]
+                fixed_content = f"Here's my original input:\n{original_content}\n\n{combined_content}"
+                last_message["content"] = fixed_content
 
                 logger.info(
                     f"开始处理 Claude 流，使用模型: {claude_model}, 提供商: {self.claude_client.provider}"
