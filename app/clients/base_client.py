@@ -94,12 +94,12 @@ class BaseClient(ABC):
         except ServerTimeoutError as e:
             error_msg = f"请求超时: {str(e)}"
             logger.error(error_msg)
-            raise
+            raise RuntimeError(error_msg) from e
 
         except ClientError as e:
             error_msg = f"客户端错误: {str(e)}"
             logger.error(error_msg)
-            raise
+            raise RuntimeError(error_msg) from e
 
         except Exception as e:
             error_msg = f"请求处理异常: {str(e)}"

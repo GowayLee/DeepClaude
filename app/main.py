@@ -5,7 +5,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.deepclaude.deepclaude import DeepClaude
 from app.utils.auth import verify_api_key
@@ -38,9 +38,9 @@ app.add_middleware(
 # Load model_config from model.example.yaml
 try:
     load_model_config(Path(__file__).parent.parent / "model.yaml")
-except Exception as e:
+except ValueError as e:
     logger.error(
-        f"Failed to load model config: {e}\n\nPlease check the model.yaml file."
+        "Error loading model_config: %s\n\nPlease check the model.yaml file.", e
     )
     sys.exit(1)
 
@@ -48,9 +48,7 @@ logger.info("App config loaded successfully")
 logger.debug(ModelConfigManager.get_model_config())
 
 generate_shown_models(Path(__file__).parent / "shown_models.yaml")
-logger.info(
-    "Shown models generated at {}".format(Path(__file__).parent / "shown_models.yaml")
-)
+logger.info("Shown models generated at %s", Path(__file__).parent / "shown_models.yaml")
 
 # 创建 DeepClaude 实例
 deep_claude = DeepClaude()
@@ -77,8 +75,11 @@ async def list_models():
         config = load_shown_model_config()
         return {"object": "list", "data": config["models"]}
     except Exception as e:
-        logger.error(f"加载模型配置时发生错误: {e}")
-        return {"error": str(e)}
+        logger.error("处理请求时发生错误: %s", e)
+        return JSONResponse(
+            status_code=500,
+            content="Server internal error",
+        )
 
 
 @app.post("/v1/chat/completions", dependencies=[Depends(verify_api_key)])
@@ -109,11 +110,8 @@ async def chat_completions(request: Request):
         model_arg = get_and_validate_params(body)
         stream = model_arg[4]
 
-        # 3. Select Model
+        # 3. Select Model, throw ValueError
         deep_model = model_config.get_deep_model(model)
-        if deep_model not in model_config.deep_models:
-            logger.error(f"Cannot find model {model}")
-            raise ValueError(f"Cannot find model {model}")
 
         # TODO: Add context limit check
 
@@ -127,16 +125,35 @@ async def chat_completions(request: Request):
                 ),
                 media_type="text/event-stream",
             )
-        else:
-            return await deep_claude.chat_completions_without_stream(
-                deep_model,
-                messages,
-                model_arg=model_arg[:4],
-            )
+        return await deep_claude.chat_completions_without_stream(
+            deep_model,
+            messages,
+            model_arg=model_arg[:4],
+        )
 
+    # 请求参数验证失败
+    except ValueError as e:
+        logger.error("参数验证失败: %s", e)
+        return JSONResponse(
+            status_code=400,
+            content=str(e),
+        )
+
+    # 运行时业务相关错误(已标记)
+    except RuntimeError as e:
+        logger.error("处理请求时发生错误: %s", e)
+        return JSONResponse(
+            status_code=500,
+            content=str(e),
+        )
+
+    # 其他错误(未标记)
     except Exception as e:
-        logger.error(f"处理请求时发生错误: {e}")
-        return {"error": str(e)}
+        logger.error("处理请求时发生错误: %s", e)
+        return JSONResponse(
+            status_code=500,
+            content="Server internal error",
+        )
 
 
 def get_and_validate_params(body):

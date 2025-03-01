@@ -69,7 +69,9 @@ class DeepClaude:
 
         async def process_deepseek():
             logger.info(
-                f"开始处理 DeepSeek 流，使用模型：{deepseek_model.model_id}, 提供商: {self._model_config.get_provider(deepseek_model.provider).name}"
+                "开始处理 DeepSeek 流，使用模型：%s, 提供商: %s",
+                deepseek_model.model_id,
+                self._model_config.get_provider(deepseek_model.provider).name,
             )
             try:
                 async for content_type, content in self.deepseek_client.chat(
@@ -103,13 +105,15 @@ class DeepClaude:
                     elif content_type == "content":
                         # 当收到 content 类型时，将完整的推理内容发送到 claude_queue，并结束 DeepSeek 流处理
                         logger.info(
-                            f"DeepSeek 推理完成，收集到的推理内容长度：{len(''.join(reasoning_content))}"
+                            "DeepSeek 推理完成，收集到的推理内容长度：%d",
+                            len("".join(reasoning_content)),
                         )
                         await claude_queue.put("".join(reasoning_content))
                         break
-            except Exception as e:
-                logger.error(f"处理 DeepSeek 流时发生错误: {e}")
+            except (ValueError, RuntimeError, Exception) as e:
+                logger.error("处理 DeepSeek 流时发生错误: %s", e)
                 await claude_queue.put("")
+                raise
             # 用 None 标记 DeepSeek 任务结束
             logger.info("DeepSeek 任务处理完成，标记结束")
             await output_queue.put(None)
@@ -119,7 +123,7 @@ class DeepClaude:
                 logger.info("等待获取 DeepSeek 的推理内容...")
                 reasoning = await claude_queue.get()
                 logger.debug(
-                    f"获取到推理内容，内容长度：{len(reasoning) if reasoning else 0}"
+                    "获取到推理内容，内容长度：%d", len(reasoning) if reasoning else 0
                 )
                 if not reasoning:
                     logger.warning("未能获取到有效的推理内容，将使用默认提示继续")
@@ -139,7 +143,7 @@ class DeepClaude:
                         system_content += message.get("content", "") + "\n"
                     else:
                         non_system_messages.append(message)
-                
+
                 # 更新消息列表为不包含 system 消息的列表
                 claude_messages = non_system_messages
 
@@ -158,20 +162,22 @@ class DeepClaude:
                 last_message["content"] = fixed_content
 
                 logger.info(
-                    f"开始处理 Claude 流，使用模型: {claude_model.model_id}, 提供商: {self._model_config.get_provider(claude_model.provider).name}"
+                    "开始处理 Claude 流，使用模型：%s, 提供商: %s",
+                    claude_model.model_id,
+                    self._model_config.get_provider(claude_model.provider).name,
                 )
 
                 # 检查 system_prompt
                 system_content = system_content.strip() if system_content else None
                 if system_content:
-                    logger.debug(f"使用系统提示: {system_content[:100]}...")
+                    logger.debug("使用系统提示: %s...", system_content[:100])
 
                 async for content_type, content in self.claude_client.chat(
                     claude_model,
                     messages=claude_messages,
                     model_arg=model_arg,
                     stream=True,
-                    system_prompt=system_content
+                    system_prompt=system_content,
                 ):
                     if content_type == "answer":
                         response = {
@@ -189,8 +195,9 @@ class DeepClaude:
                         await output_queue.put(
                             f"data: {json.dumps(response)}\n\n".encode("utf-8")
                         )
-            except Exception as e:
-                logger.error(f"处理 Claude 流时发生错误: {e}")
+            except (ValueError, RuntimeError, Exception) as e:
+                logger.error("处理 Claude 流时发生错误: %s", e)
+                raise
             # 用 None 标记 Claude 任务结束
             logger.info("Claude 任务处理完成，标记结束")
             await output_queue.put(None)
@@ -249,9 +256,10 @@ class DeepClaude:
                     reasoning_content.append(content)
                 elif content_type == "content":
                     break
-        except Exception as e:
-            logger.error(f"获取 DeepSeek 推理内容时发生错误: {e}")
+        except (ValueError, RuntimeError, Exception) as e:
+            logger.error("获取 DeepSeek 推理内容时发生错误: %s", e)
             reasoning_content = ["获取推理内容失败"]
+            raise
 
         # 2. 构造 Claude 的输入消息
         reasoning = "".join(reasoning_content)
@@ -269,7 +277,7 @@ class DeepClaude:
                 system_content += message.get("content", "") + "\n"
             else:
                 non_system_messages.append(message)
-        
+
         # 更新消息列表为不包含 system 消息的列表
         claude_messages = non_system_messages
 
@@ -295,18 +303,18 @@ class DeepClaude:
         try:
             answer = ""
             output_tokens = []  # 初始化 output_tokens
-            
+
             # 检查 system_prompt
             system_content = system_content.strip() if system_content else None
             if system_content:
                 logger.debug(f"使用系统提示: {system_content[:100]}...")
-            
+
             async for content_type, content in self.claude_client.chat(
                 claude_model,
                 messages=claude_messages,
                 model_arg=model_arg,
                 stream=False,
-                system_prompt=system_content
+                system_prompt=system_content,
             ):
                 if content_type == "answer":
                     answer += content
@@ -336,6 +344,6 @@ class DeepClaude:
                     "total_tokens": len(input_tokens + output_tokens),
                 },
             }
-        except Exception as e:
-            logger.error(f"获取 Claude 响应时发生错误: {e}")
-            raise e
+        except (ValueError, RuntimeError, Exception) as e:
+            logger.error("获取 Claude 响应时发生错误: %s", e)
+            raise

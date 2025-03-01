@@ -119,7 +119,7 @@ class ClaudeClient(BaseClient):
         else:
             raise ValueError(f"不支持的Claude Provider: {provider_type}")
 
-        logger.debug(f"开始对话：{data}")
+        logger.debug("开始对话：%s", data)
 
         if stream:
             async for chunk in self._make_request(
@@ -159,8 +159,9 @@ class ClaudeClient(BaseClient):
                                 raise ValueError(
                                     f"不支持的Claude Provider: {provider_type}"
                                 )
-                        except json.JSONDecodeError:
-                            continue
+                        except json.JSONDecodeError as e:
+                            logger.error("JSON 解析错误: %s", e)
+                            raise RuntimeError from e
         else:
             # 非流式输出
             async for chunk in self._make_request(
@@ -185,5 +186,6 @@ class ClaudeClient(BaseClient):
                             yield "answer", content
                     else:
                         raise ValueError(f"不支持的Claude Provider: {provider_type}")
-                except json.JSONDecodeError:
-                    continue
+                except json.JSONDecodeError as e:
+                    logger.error("JSON 解析错误: %s", e)
+                    raise RuntimeError from e
