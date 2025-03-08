@@ -8,7 +8,7 @@ from typing import AsyncGenerator
 import tiktoken
 
 from app.clients import ClaudeClient, DeepSeekClient
-from app.config.model_config import DeepModelConfig, ModelConfig
+from app.config.models.model_config import DeepModelConfig, ModelConfig
 from app.utils.config.manager import ModelConfigManager
 from app.utils.logger import logger
 

@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 
 from typing_extensions import override
 
-from app.config.model_config import BaseModelConfig, ProviderType
+from app.config.models.model_config import BaseModelConfig, ProviderType
 from app.utils.config.manager import ModelConfigManager
 from app.utils.logger import logger
 

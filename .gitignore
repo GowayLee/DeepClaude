@@ -6,12 +6,8 @@ dist/
 wheels/
 *.egg-info
 
-# Environment
-.env
-.env.*
-!.env.example
-*.yaml
-!model.example.yaml
+# Configuration
+config.json
 
 # Virtual environments
 .venv

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepClaude 模型配置管理</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <!-- 引入 Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入 Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <!-- 授权页面 -->
+    <div id="auth-page" class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">DeepClaude 模型配置管理 - 授权</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="auth-form">
+                            <div class="mb-3">
+                                <label for="api-key" class="form-label">API Key</label>
+                                <input type="password" class="form-control" id="api-key" placeholder="请输入您的 API Key">
+                                <div class="form-text">默认 api key 为 123456，远程部署请在登录后在“系统设置”内尽快修改</div>
+                            </div>
+                            <div id="auth-error" class="alert alert-danger d-none" role="alert">
+                                API Key 无效，请重新输入
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">验证</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 配置页面 -->
+    <div id="config-page" class="container-fluid mt-3 d-none">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">DeepClaude 模型配置管理</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#composite-models" data-bs-toggle="tab">组合模型</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#reasoner-models" data-bs-toggle="tab">推理模型</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#target-models" data-bs-toggle="tab">目标模型</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#proxy-settings" data-bs-toggle="tab">代理设置</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#system-settings" data-bs-toggle="tab">系统设置</a>
+                        </li>
+                    </ul>
+                    <div class="d-flex">
+                        <button id="save-all-btn" class="btn btn-success me-2">保存所有配置</button>
+                        <button id="logout-btn" class="btn btn-outline-light">退出</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="tab-content mt-3">
+            <!-- 组合模型配置 -->
+            <div class="tab-pane fade show active" id="composite-models">
+                <div class="container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2>组合模型配置</h2>
+                        <button id="add-composite-model-btn" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> 添加组合模型
+                        </button>
+                    </div>
+                    <div id="composite-models-container" class="row">
+                        <!-- 组合模型卡片将在这里动态生成 -->
+                    </div>
+                    <!-- 广告卡片 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">无需自己配置，可直接购买 API</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>支持最新 Claude 3.7 Sonnet 推理模型、DeepClaude、DeepGemini（目前社区反馈最好）、ChatGPT 系列模型等，支持知识库使用。</p>
+                            <a href="https://erlich.fun/deepclaude-pricing" class="btn btn-primary">
+                                <i class="bi bi-cart me-1"></i> 立即购买
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 推理模型配置 -->
+            <div class="tab-pane fade" id="reasoner-models">
+                <div class="container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2>推理模型配置</h2>
+                        <button id="add-reasoner-model-btn" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> 添加推理模型
+                        </button>
+                    </div>
+                    <!-- 推荐卡片 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">推荐采用火山云引擎的满血 deepseek r1</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>点击立即注册后，新用户可以获得 15 元的免费额度，流畅不卡顿</p>
+                            <a href="https://www.volcengine.com/experience/ark?utm_term=202502dsinvite&ac=DSASUQY5&rc=AK7Q5AEU" class="btn btn-primary" target="_blank">
+                                <i class="bi bi-person-plus me-1"></i> 立即注册
+                            </a>
+                        </div>
+                    </div>
+                    <div id="reasoner-models-container" class="row">
+                        <!-- 推理模型卡片将在这里动态生成 -->
+                    </div>
+                    <!-- 广告卡片 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">无需自己配置，可直接购买 API</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>支持最新 Claude 3.7 Sonnet 推理模型、DeepClaude、DeepGemini（目前社区反馈最好）、ChatGPT 系列模型等，支持知识库使用。</p>
+                            <a href="https://erlich.fun/deepclaude-pricing" class="btn btn-primary">
+                                <i class="bi bi-cart me-1"></i> 立即购买
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 目标模型配置 -->
+            <div class="tab-pane fade" id="target-models">
+                <div class="container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2>目标模型配置</h2>
+                        <button id="add-target-model-btn" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> 添加目标模型
+                        </button>
+                    </div>
+                    <!-- 推荐卡片 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">推荐采用 DMXapi 的 Claude 3.7 Sonnet</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>点击立即注册后，新用户可以获得 2.5 元的免费额度，可用于 Claude 3.7 Sonnet，用户实际购买价格低于 Claude 官方</p>
+                            <a href="https://www.dmxapi.cn/register?aff=w5Eo" class="btn btn-primary" target="_blank">
+                                <i class="bi bi-person-plus me-1"></i> 立即注册
+                            </a>
+                        </div>
+                    </div>
+                    <div id="target-models-container" class="row">
+                        <!-- 目标模型卡片将在这里动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 代理设置 -->
+            <div class="tab-pane fade" id="proxy-settings">
+                <div class="container">
+                    <h2>代理设置</h2>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">代理设置</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="proxy-form">
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="proxy-open">
+                                    <label class="form-check-label" for="proxy-open">启用代理</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">代理地址</label>
+                                    <input type="text" class="form-control" id="proxy-address" placeholder="例如: 127.0.0.1:7890">
+                                </div>
+                                <button type="button" class="btn btn-primary" id="save-proxy-btn">保存代理设置</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统设置 -->
+            <div class="tab-pane fade" id="system-settings">
+                <div class="container">
+                    <h2>系统设置</h2>
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">系统设置</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="system-form">
+                                <div class="mb-3">
+                                    <label class="form-label">允许的源 (CORS)</label>
+                                    <div id="allow-origins-container">
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control allow-origin" placeholder="例如: * 或 http://localhost:3000">
+                                            <button class="btn btn-outline-secondary remove-origin-btn" type="button">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-origin-btn">
+                                        <i class="bi bi-plus"></i> 添加源
+                                    </button>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">日志级别</label>
+                                    <select class="form-select" id="log-level">
+                                        <option value="DEBUG">DEBUG</option>
+                                        <option value="INFO">INFO</option>
+                                        <option value="WARNING">WARNING</option>
+                                        <option value="ERROR">ERROR</option>
+                                        <option value="CRITICAL">CRITICAL</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">API Key</label>
+                                    <input type="text" class="form-control" id="system-api-key" placeholder="设置 API Key">
+                                    <div class="form-text">默认值为 123456，当你在 ChatBox 等聊天软件内使用时，填写的 api key 就是这个。如部署在云端，为保证安全请尽快修改。</div>
+                                </div>
+                                <button type="button" class="btn btn-primary" id="save-system-btn">保存系统设置</button>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- 广告卡片 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">无需自己配置，可直接购买 API</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>支持最新 Claude 3.7 Sonnet 推理模型、DeepClaude、DeepGemini（目前社区反馈最好）、ChatGPT 系列模型等，支持知识库使用。</p>
+                            <a href="https://erlich.fun/deepclaude-pricing" class="btn btn-primary">
+                                <i class="bi bi-cart me-1"></i> 立即购买
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模板 -->
+    <!-- 推理模型卡片模板 -->
+    <template id="reasoner-model-template">
+        <div class="col-md-6 mb-4 reasoner-model-card">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 model-name"></h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary edit-model-btn">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-model-btn">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form class="model-form">
+                        <div class="mb-3">
+                            <label class="form-label">模型 ID</label>
+                            <input type="text" class="form-control model-id" placeholder="模型 ID">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">API Key</label>
+                            <input type="password" class="form-control api-key" placeholder="API Key">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Base URL</label>
+                            <input type="text" class="form-control api-base-url" placeholder="例如: https://api.example.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">API 请求地址</label>
+                            <input type="text" class="form-control api-request-address" placeholder="例如: v1/chat/completions">
+                        </div>
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input is-origin-reasoning" type="checkbox">
+                            <label class="form-check-label">是否原生支持推理</label>
+                        </div>
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input is-valid" type="checkbox">
+                            <label class="form-check-label">模型可用</label>
+                        </div>
+                        <button type="button" class="btn btn-primary save-model-btn">保存</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 目标模型卡片模板 -->
+    <template id="target-model-template">
+        <div class="col-md-6 mb-4 target-model-card">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 model-name"></h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary edit-model-btn">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-model-btn">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form class="model-form">
+                        <div class="mb-3">
+                            <label class="form-label">模型 ID</label>
+                            <input type="text" class="form-control model-id" placeholder="模型 ID">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">API Key</label>
+                            <input type="password" class="form-control api-key" placeholder="API Key">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Base URL</label>
+                            <input type="text" class="form-control api-base-url" placeholder="例如: https://api.example.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">API 请求地址</label>
+                            <input type="text" class="form-control api-request-address" placeholder="例如: v1/chat/completions">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">模型格式</label>
+                            <select class="form-select model-format">
+                                <option value="openai">OpenAI</option>
+                                <option value="anthropic">Anthropic</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input is-valid" type="checkbox">
+                            <label class="form-check-label">模型可用</label>
+                        </div>
+                        <button type="button" class="btn btn-primary save-model-btn">保存</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 组合模型卡片模板 -->
+    <template id="composite-model-template">
+        <div class="col-md-6 mb-4 composite-model-card">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 model-name"></h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary edit-model-btn">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-model-btn">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form class="model-form">
+                        <div class="mb-3">
+                            <label class="form-label">模型 ID</label>
+                            <input type="text" class="form-control model-id" placeholder="模型 ID">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">推理模型</label>
+                            <select class="form-select reasoner-model-select">
+                                <!-- 选项将动态生成 -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">目标模型</label>
+                            <select class="form-select target-model-select">
+                                <!-- 选项将动态生成 -->
+                            </select>
+                        </div>
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input is-valid" type="checkbox">
+                            <label class="form-check-label">模型可用</label>
+                        </div>
+                        <button type="button" class="btn btn-primary save-model-btn">保存</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 添加模型对话框 -->
+    <div class="modal fade" id="add-model-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="add-model-title">添加模型</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-model-form">
+                        <div class="mb-3">
+                            <label for="new-model-name" class="form-label">模型名称</label>
+                            <input type="text" class="form-control" id="new-model-name" placeholder="例如: Provider/Model-Name">
+                        </div>
+                        <div id="add-model-fields">
+                            <!-- 动态生成的字段 -->
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirm-add-model">添加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除对话框 -->
+    <div class="modal fade" id="confirm-delete-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    确定要删除 <span id="delete-model-name"></span> 吗？此操作无法撤销。
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-btn">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示框 -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast-container"></div>
+    </div>
+
+    <!-- 引入 Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 引入自定义 JS -->
+    <script src="./static/js/auth.js"></script>
+    <script src="./static/js/config.js"></script>
+    <script src="./static/js/main.js"></script>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center text-lg-start mt-5">
+        <div class="container p-4">
+            <div class="row">
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="">DeepClaude 开源项目</h5>
+                    <p>
+                        DeepClaude 是一个强大的组合模型使用方案，可以借助 DeepSeek R1 等推理模型强大的推理能力来提高像 Claude 3.7 Sonnet 或 Gemini 2.0 Pro 等模型的能力。你可以借助当前的方案实现几乎任何推理模型+目标模型的配置！
+                    </p>
+                </div>
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">相关链接</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <a href="https://github.com/erlichliu/DeepClaude" class="text-primary text-decoration-none">
+                                <i class="bi bi-github me-1"></i> GitHub 项目
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://erlich.fun/deepclaude-pricing" class="text-primary text-decoration-none">
+                                <i class="bi bi-cart me-1"></i> 直接购买 API
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.05);">
+            2025 版权所有：
+            <a class="text-dark text-decoration-none" href="#">DeepClaude</a>
+        </div>
+    </footer>
+</body>
+</html>

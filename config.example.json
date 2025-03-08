@@ -1,0 +1,78 @@
+{
+  "system": {
+    "api_key": "<your_api_key>",
+    "allow_origins": ["*"],
+    "log_level": "INFO",
+    "proxy": {
+      "proxy_open": false,
+      "proxy_address": "127.0.0.1:7890"
+    }
+  },
+  "providers": [
+    {
+      "name": "anthropic",
+      "type": "anthropic",
+      "base_url": "https://api.anthropic.com/v1/messages",
+      "api_key": "<your_anthropic_api_key>",
+      "use_proxy": true
+    },
+    {
+      "name": "deepseek",
+      "type": "openai-compatible",
+      "base_url": "https://api.deepseek.com/v1/chat/completions",
+      "api_key": "<your_deepseek_api_key_here>",
+      "use_proxy": false
+    },
+    {
+      "name": "openrouter",
+      "type": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1/chat/completions",
+      "api_key": "<your_openrouer_api_key_here>",
+      "use_proxy": false
+    },
+    {
+      "name": "google",
+      "type": "openai-compatible",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      "api_key": "<your_google_api_key_here>",
+      "use_proxy": true
+    }
+  ],
+  "base_models": [
+    {
+      "name": "deepseek/deepseek-reasoner",
+      "model_id": "deepseek-reasoner",
+      "provider": "deepseek",
+      "context": 65536,
+      "max_tokens": 4096
+    },
+    {
+      "name": "anthropic/cluade-3-5-sonnet",
+      "model_id": "claude-3-5-sonnet-20241022",
+      "provider": "anthropic",
+      "context": 204800,
+      "max_tokens": 8192
+    },
+    {
+      "name": "google/gemini-2.0-pro-exp",
+      "model_id": "gemini-2.0-pro-exp-02-05",
+      "provider": "google",
+      "context": 204800,
+      "max_tokens": 8192
+    }
+  ],
+  "deep_models": [
+    {
+      "name": "deepclaude",
+      "reason_model": "deepseek/deepseek-reasoner",
+      "answer_model": "anthropic/cluade-3-5-sonnet",
+      "is_origin_reasoning": true
+    },
+    {
+      "name": "deepgemini",
+      "reason_model": "deepseek/deepseek-reasoner",
+      "answer_model": "google/gemini-2.0-pro-exp",
+      "is_origin_reasoning": true
+    }
+  ]
+}

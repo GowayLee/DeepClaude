@@ -7,7 +7,7 @@ from typing import AsyncGenerator, Optional
 import aiohttp
 from aiohttp.client_exceptions import ClientError, ServerTimeoutError
 
-from app.config.model_config import BaseModelConfig
+from app.config.models.model_config import BaseModelConfig
 from app.utils.logger import logger
 
 
