@@ -1,13 +1,4 @@
 {
-  "system": {
-    "api_key": "<your_api_key>",
-    "allow_origins": ["*"],
-    "log_level": "INFO",
-    "proxy": {
-      "proxy_open": false,
-      "proxy_address": "127.0.0.1:7890"
-    }
-  },
   "providers": [
     {
       "name": "anthropic",

@@ -7,7 +7,7 @@ wheels/
 *.egg-info
 
 # Configuration
-config.json
+models.json
 
 # Virtual environments
 .venv
